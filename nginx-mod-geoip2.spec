@@ -1,7 +1,7 @@
 Summary: GeoIP2 module for nginx
 Name: nginx-mod-geoip2
 Version: 3.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 Vendor: brestows
 URL: https://github.com/leev/ngx_http_geoip2_module
 
