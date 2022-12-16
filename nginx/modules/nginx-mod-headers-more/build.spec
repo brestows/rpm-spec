@@ -44,7 +44,7 @@ Group: %{_group}
 
 Source0: https://nginx.org/download/nginx-%{base_version}.tar.gz
 Source1: https://github.com/openresty/headers-more-nginx-module/archive/v%{dmod_version}.tar.gz
-Source2: COPYRIGHT_ngx_headers_more
+Source2: copyright
 
 
 License: 2-clause BSD-like license
