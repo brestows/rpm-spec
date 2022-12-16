@@ -1,5 +1,5 @@
 Summary: headers-more module for nginx
-Name: nginx-mod-headers-more
+Name: nginx-module-headers-more
 Version: 0.33
 Release: 3
 Vendor: OpenResty, Inc.
@@ -35,7 +35,7 @@ more than "add"!
 %define BASE_CONFIGURE_ARGS $(echo "%{NGINX_COMPILED_FLAGS}" | sed 's/--with-cc-opt=.*//; s/--with-ld-opt=.*//')
 %define WITH_CC_OPT $(echo "%{NGINX_COMPILED_FLAGS}" | grep -Eo \"\\\--with-cc-opt='[^']+'\" | tr -d "'" | cut -c15-)
 %define WITH_LD_OPT $(echo "%{NGINX_COMPILED_FLAGS}" | grep -Eo \"\\\--with-ld-opt='[^']+'\" | tr -d "'" | cut -c15-)
-%define MODULE_CONFIGURE_ARGS $(echo "--add-dynamic-module=modules/nginx-mod-headers-more")
+%define MODULE_CONFIGURE_ARGS $(echo "--add-dynamic-module=modules/nginx-module-headers-more")
 
 %prep
 %setup -qcTn %{name}-%{_nginxver}_%{_modver}
@@ -74,9 +74,9 @@ make -f objs/Makefile %{?_smp_mflags} modules
 %install
 cd %{_builddir}
 %{__rm} -rf $RPM_BUILD_ROOT
-%{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/nginx-module-headers-more
+%{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/{name}
 %{__install} -m 644 -p %{SOURCE2} \
-    $RPM_BUILD_ROOT%{_datadir}/doc/nginx-module-headers-more/COPYRIGHT
+    $RPM_BUILD_ROOT%{_datadir}/doc/{name}/COPYRIGHT
 
 %{__mkdir} -p $RPM_BUILD_ROOT%{_libdir}/nginx/modules
 find %{_builddir}/objs/ -type f -name "*-debug.so" -delete
