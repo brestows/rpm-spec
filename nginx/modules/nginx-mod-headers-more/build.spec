@@ -48,7 +48,7 @@ cd ../../
 
 %build
 
-cd %{bdir}
+cd %{_builddir}
 
 echo "BASE_CONFIGURE_ARGS: %{BASE_CONFIGURE_ARGS}"
 echo "MODULE_CONFIGURE_ARGS: %{MODULE_CONFIGURE_ARGS}"
@@ -61,7 +61,7 @@ echo "WITH_LD_OPT: %{WITH_LD_OPT}"
         --with-debug
 make -f objs/Makefile %{?_smp_mflags} modules
 
-for so in `find %{bdir}/objs/ -type f -name "*.so"`; do
+for so in `find %{_builddir}/objs/ -type f -name "*.so"`; do
     debugso=`echo $so | sed -e "s|.so|-debug.so|"`
     mv $so $debugso
 done
@@ -72,21 +72,21 @@ done
 make -f objs/Makefile %{?_smp_mflags} modules
 
 %install
-cd %{bdir}
+cd %{_builddir}
 %{__rm} -rf $RPM_BUILD_ROOT
 %{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/nginx-module-headers-more
 %{__install} -m 644 -p %{SOURCE2} \
     $RPM_BUILD_ROOT%{_datadir}/doc/nginx-module-headers-more/COPYRIGHT
 
 %{__mkdir} -p $RPM_BUILD_ROOT%{_libdir}/nginx/modules
-find %{bdir}/objs/ -type f -name "*-debug.so" -delete
-for so in `find %{bdir}/objs/ -maxdepth 1 -type f -name "*.so"`; do
+find %{_builddir}/objs/ -type f -name "*-debug.so" -delete
+for so in `find %{_builddir}/objs/ -maxdepth 1 -type f -name "*.so"`; do
     %{__install} -m755 $so $RPM_BUILD_ROOT%{_libdir}/nginx/modules/
 done
 
 %check
 %{__rm} -rf $RPM_BUILD_ROOT/usr/src
-cd %{bdir}
+cd %{_builddir}
 grep -v 'usr/src' debugfiles.list > debugfiles.list.new && mv debugfiles.list.new debugfiles.list
 cat /dev/null > debugsources.list
 %if 0%{?suse_version} >= 1500
