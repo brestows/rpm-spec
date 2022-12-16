@@ -48,7 +48,7 @@ cd ../../
 
 %build
 
-cd %{_builddir}
+cd %{_builddir}/nginx-%{_nginxver}
 
 echo "BASE_CONFIGURE_ARGS: %{BASE_CONFIGURE_ARGS}"
 echo "MODULE_CONFIGURE_ARGS: %{MODULE_CONFIGURE_ARGS}"
@@ -61,7 +61,7 @@ echo "WITH_LD_OPT: %{WITH_LD_OPT}"
         --with-debug
 make -f objs/Makefile %{?_smp_mflags} modules
 
-for so in `find %{_builddir}/objs/ -type f -name "*.so"`; do
+for so in `find %{nginx_build_dir}/objs/ -type f -name "*.so"`; do
     debugso=`echo $so | sed -e "s|.so|-debug.so|"`
     mv $so $debugso
 done
@@ -72,11 +72,11 @@ done
 make -f objs/Makefile %{?_smp_mflags} modules
 
 %install
-cd %{_builddir}
+cd %{_builddir}/nginx-%{_nginxver}
 %{__rm} -rf $RPM_BUILD_ROOT
-%{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/{name}
+%{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/%{name}
 %{__install} -m 644 -p %{SOURCE2} \
-    $RPM_BUILD_ROOT%{_datadir}/doc/{name}/COPYRIGHT
+    $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/COPYRIGHT
 
 %{__mkdir} -p $RPM_BUILD_ROOT%{_libdir}/nginx/modules
 find %{_builddir}/objs/ -type f -name "*-debug.so" -delete
