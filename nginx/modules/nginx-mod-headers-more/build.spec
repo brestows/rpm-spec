@@ -1,76 +1,44 @@
-#
-%if 0%{?rhel} || 0%{?amzn} || 0%{?fedora}
-%define _group System Environment/Daemons
-BuildRequires: openssl-devel
-%endif
-
-%if 0%{?suse_version} >= 1315
-%define _group Productivity/Networking/Web/Servers
-BuildRequires: libopenssl-devel
-%define _debugsource_template %{nil}
-%endif
-
-%if 0%{?rhel} == 7
-%define epoch 1
-Epoch: %{epoch}
-%define dist .el7
-%endif
-
-%if 0%{?rhel} == 8
-%define epoch 1
-Epoch: %{epoch}
-%define dist .el8
-%define _debugsource_template %{nil}
-%endif
-
-%if 0%{?fedora}
-%define _debugsource_template %{nil}
-%global _hardened_build 1
-%endif
-
-%define base_version 1.20.1
-%define base_release 1%{?dist}.ngx
-%define dmod_version 0.33
-
-%define bdir %{_builddir}/%{name}-%{base_version}_%{dmod_version}
-
-Summary: nginx headers-more dynamic module
-Name: nginx-module-headers-more
-Version: %{base_version}_%{dmod_version}
-Release: 1.1%{?dist}.stremki
+Summary: headers-more module for nginx
+Name: nginx-mod-headers-more
+Version: 0.33
+Release: 3
 Vendor: OpenResty, Inc.
 URL: https://github.com/openresty/headers-more-nginx-module
-Group: %{_group}
 
-Source0: https://nginx.org/download/nginx-%{base_version}.tar.gz
-Source1: https://github.com/openresty/headers-more-nginx-module/archive/v%{dmod_version}.tar.gz
+%define _modname            headers-more
+%define _modver             0.34
+%define _nginxver           1.20.1
+%define nginx_config_dir    %{_sysconfdir}/nginx
+%define nginx_build_dir     %{_builddir}/nginx-%{_nginxver}
+
+Source0: https://nginx.org/download/nginx-%{_nginxver}.tar.gz
+Source1: https://github.com/openresty/headers-more-nginx-module/archive/v%{_modver}.tar.gz
 Source2: copyright
 
+Requires: nginx = 1:%{_nginxver}
+BuildRequires: zlib-devel
+BuildRequires: pcre-devel
+BuildRequires: nginx
+BuildRequires: openssl-devel
 
 License: 2-clause BSD-like license
 
-BuildRoot: %{_tmppath}/%{name}-%{base_version}-%{base_release}-root
-BuildRequires: zlib-devel
-BuildRequires: pcre-devel
-BuildRequires: nginx == %{?epoch:%{epoch}:}%{base_version}-%{base_release}
-Requires: nginx == %{?epoch:%{epoch}:}%{base_version}-%{base_release}
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+
 
 %description
 nginx ngx_headers_more dynamic module. Set and clear input and output headers...
 more than "add"!
 
-%if 0%{?suse_version} || 0%{?amzn}
-%debug_package
-%endif
 
 %define NGINX_COMPILED_FLAGS $(nginx -V 2>&1 | grep ^config | cut -c22-)
 %define BASE_CONFIGURE_ARGS $(echo "%{NGINX_COMPILED_FLAGS}" | sed 's/--with-cc-opt=.*//; s/--with-ld-opt=.*//')
 %define WITH_CC_OPT $(echo "%{NGINX_COMPILED_FLAGS}" | grep -Eo \"\\\--with-cc-opt='[^']+'\" | tr -d "'" | cut -c15-)
 %define WITH_LD_OPT $(echo "%{NGINX_COMPILED_FLAGS}" | grep -Eo \"\\\--with-ld-opt='[^']+'\" | tr -d "'" | cut -c15-)
-%define MODULE_CONFIGURE_ARGS $(echo "--add-dynamic-module=modules/nginx-module-headers-more")
+%define MODULE_CONFIGURE_ARGS $(echo "--add-dynamic-module=modules/nginx-mod-headers-more")
 
 %prep
-%setup -qcTn %{name}-%{base_version}_%{dmod_version}
+%setup -qcTn %{name}-%{_nginxver}_%{_modver}
 tar --strip-components=1 -zxf %{SOURCE0}
 mkdir -p modules/%{name}
 cd modules/%{name}
@@ -131,8 +99,8 @@ cat /dev/null > debugsourcefiles.list
 %files
 %defattr(-,root,root)
 %{_libdir}/nginx/modules/*
-%dir %{_datadir}/doc/nginx-module-headers-more
-%{_datadir}/doc/nginx-module-headers-more/*
+%dir %{_datadir}/doc/%{name}
+%{_datadir}/doc/%{name}/*
 
 
 %post
