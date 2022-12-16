@@ -42,7 +42,7 @@ Vendor: OpenResty, Inc.
 URL: https://github.com/openresty/headers-more-nginx-module
 Group: %{_group}
 
-Source0: http://nginx.org/download/nginx-%{base_version}.tar.gz
+Source0: https://nginx.org/download/nginx-%{base_version}.tar.gz
 Source1: https://github.com/openresty/headers-more-nginx-module/archive/v%{dmod_version}.tar.gz
 Source2: COPYRIGHT_ngx_headers_more
 
