@@ -20,6 +20,8 @@ BuildRequires: zlib-devel
 BuildRequires: pcre-devel
 BuildRequires: nginx
 BuildRequires: openssl-devel
+BuildRequires: libxslt-devel
+
 
 License: 2-clause BSD-like license
 
