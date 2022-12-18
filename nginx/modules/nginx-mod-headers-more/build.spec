@@ -81,7 +81,7 @@ done
 make -f objs/Makefile %{?_smp_mflags} modules
 
 %install
-cd %{_builddir}/nginx-%{_nginxver}
+
 %{__rm} -rf $RPM_BUILD_ROOT
 %{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/%{name}
 %{__install} -m 644 -p %{SOURCE2} \
