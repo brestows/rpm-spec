@@ -47,7 +47,9 @@ cd ../../
 
 
 %build
-
+pwd
+ls -la
+ls -la %{_builddir}
 cd %{_builddir}/nginx-%{_nginxver}
 
 echo "BASE_CONFIGURE_ARGS: %{BASE_CONFIGURE_ARGS}"
