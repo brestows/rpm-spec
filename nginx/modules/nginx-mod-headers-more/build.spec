@@ -81,17 +81,26 @@ done
 make -f objs/Makefile %{?_smp_mflags} modules
 
 %install
+%{__rm} -rf %{buildroot}
 
-%{__rm} -rf $RPM_BUILD_ROOT
-%{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/%{name}
-%{__install} -m 644 -p %{SOURCE2} \
-    $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/COPYRIGHT
+%{__install} -Dm755 %{nginx_build_dir}/objs/ngx_http_%{_modname}_module.so \
+    $RPM_BUILD_ROOT%{_libdir}/nginx/modules/ngx_http_%{_modname}_module.so
 
-%{__mkdir} -p $RPM_BUILD_ROOT%{_libdir}/nginx/modules
-find %{_builddir} -type f -name "*-debug.so" -delete
-for so in `find %{_builddir} -maxdepth 1 -type f -name "*.so"`; do
-    %{__install} -m755 $so $RPM_BUILD_ROOT%{_libdir}/nginx/modules/
-done
+
+
+
+#%install
+#
+#%{__rm} -rf $RPM_BUILD_ROOT
+#%{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/%{name}
+#%{__install} -m 644 -p %{SOURCE2} \
+#    $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/COPYRIGHT
+#
+#%{__mkdir} -p $RPM_BUILD_ROOT%{_libdir}/nginx/modules
+#find %{_builddir} -type f -name "*-debug.so" -delete
+#for so in `find %{_builddir} -maxdepth 1 -type f -name "*.so"`; do
+#    %{__install} -m755 $so $RPM_BUILD_ROOT%{_libdir}/nginx/modules/
+#done
 
 
 %clean
@@ -100,28 +109,8 @@ done
 
 %files
 %defattr(-,root,root)
-%{_libdir}/nginx/modules/*
-%dir %{_datadir}/doc/%{name}
-%{_datadir}/doc/%{name}/*
+%{_libdir}/nginx/modules/*.so
 
-
-%post
-if [ $1 -eq 1 ]; then
-cat <<BANNER
-----------------------------------------------------------------------
-
-The headers_more dynamic module for nginx has been installed.
-To enable this module, add the following to /etc/nginx/nginx.conf
-and reload nginx:
-
-    load_module /etc/nginx/modules/ngx_http_headers_more_filter_module.so;
-
-Please refer to the module documentation for further details:
-https://github.com/openresty/headers-more-nginx-module#name
-
-----------------------------------------------------------------------
-BANNER
-fi
 
 %changelog
 * Wed Jul 1 2020 Dzmitry Stremkouski <mitroko@gmail.com> - 0.33-1.1
