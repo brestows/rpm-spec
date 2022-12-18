@@ -88,10 +88,9 @@ make -f objs/Makefile %{?_smp_mflags} modules
 
 %{__mkdir} -p $RPM_BUILD_ROOT%{_libdir}/nginx/modules
 
-for so in `find %{nginx_build_dir} -maxdepth 1 -type f -name "*.so"`; do
+for so in `find %{_builddir} -maxdepth 1 -type f -name "*.so"`; do
     %{__install} -m755 $so $RPM_BUILD_ROOT%{_libdir}/nginx/modules/
 done
-
 
 
 
