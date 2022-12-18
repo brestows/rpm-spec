@@ -93,17 +93,10 @@ for so in `find %{_builddir} -maxdepth 1 -type f -name "*.so"`; do
     %{__install} -m755 $so $RPM_BUILD_ROOT%{_libdir}/nginx/modules/
 done
 
-%check
-%{__rm} -rf $RPM_BUILD_ROOT/usr/src
-cd %{_builddir}
-grep -v 'usr/src' debugfiles.list > debugfiles.list.new && mv debugfiles.list.new debugfiles.list
-cat /dev/null > debugsources.list
-%if 0%{?suse_version} >= 1500
-cat /dev/null > debugsourcefiles.list
-%endif
 
 %clean
-%{__rm} -rf $RPM_BUILD_ROOT
+%{__rm} -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root)
