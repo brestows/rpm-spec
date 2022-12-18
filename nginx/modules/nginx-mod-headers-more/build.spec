@@ -20,8 +20,17 @@ BuildRequires: zlib-devel
 BuildRequires: pcre-devel
 BuildRequires: nginx
 BuildRequires: openssl-devel
+BuildRequires: libtool
+BuildRequires: autoconf
+BuildRequires: automake
+BuildRequires: openssl-devel
+BuildRequires: perl-devel
+BuildRequires: gd-devel
+BuildRequires: libmaxminddb-devel
 BuildRequires: libxslt-devel
-
+BuildRequires: perl-devel
+BuildRequires: perl(ExtUtils::Embed)
+BuildRequires: gperftools-devel
 
 License: 2-clause BSD-like license
 
