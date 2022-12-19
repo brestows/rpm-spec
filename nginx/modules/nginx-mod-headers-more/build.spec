@@ -48,58 +48,24 @@ more than "add"!
 %define WITH_LD_OPT $(echo "%{NGINX_COMPILED_FLAGS}" | grep -Eo \"\\\--with-ld-opt='[^']+'\" | tr -d "'" | cut -c15-)
 %define MODULE_CONFIGURE_ARGS $(echo "--add-dynamic-module=modules/nginx-module-headers-more")
 
-%prep
-%setup -qcTn %{name}-%{_nginxver}_%{_modver}
-tar --strip-components=1 -zxf %{SOURCE0}
-mkdir -p modules/%{name}
-cd modules/%{name}
-tar --strip-components=1 -zxf %{SOURCE1}
-cd ../../
 
+%prep
+%setup -q -n nginx-%{_nginxver}
+%setup -T -D -b 1 -n ngx_http_%{_modname}_module-%{version}
 
 %build
-
-echo "BASE_CONFIGURE_ARGS: %{BASE_CONFIGURE_ARGS}"
-echo "MODULE_CONFIGURE_ARGS: %{MODULE_CONFIGURE_ARGS}"
-echo "WITH_CC_OPT: %{WITH_CC_OPT}"
-echo "WITH_LD_OPT: %{WITH_LD_OPT}"
-
-./configure %{BASE_CONFIGURE_ARGS} %{MODULE_CONFIGURE_ARGS} \
-        --with-cc-opt="%{WITH_CC_OPT} " \
-        --with-ld-opt="%{WITH_LD_OPT} " \
-        --with-debug
-make -f objs/Makefile %{?_smp_mflags} modules
-
-for so in `find %{nginx_build_dir}/objs/ -type f -name "*.so"`; do
-    debugso=`echo $so | sed -e "s|.so|-debug.so|"`
-    mv $so $debugso
-done
-
-./configure %{BASE_CONFIGURE_ARGS} %{MODULE_CONFIGURE_ARGS} \
-        --with-cc-opt="%{WITH_CC_OPT} " \
-        --with-ld-opt="%{WITH_LD_OPT} "
-make -f objs/Makefile %{?_smp_mflags} modules
+cd %{_builddir}/nginx-%{_nginxver}
+./configure %(nginx -V 2>&1 | grep 'configure arguments' | sed -r 's@^[^:]+: @@') --add-dynamic-module=../ngx_http_%{_modname}_module-%{version}
+make modules
 
 %install
 %{__rm} -rf %{buildroot}
-%{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/%{name}
-%{__install} -m 644 -p %{SOURCE2} \
-    $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/COPYRIGHT
 
-%{__mkdir} -p $RPM_BUILD_ROOT%{_libdir}/nginx/modules
-
-for so in `find %{_builddir} -maxdepth 1 -type f -name "*.so"`; do
-    %{__install} -m755 $so $RPM_BUILD_ROOT%{_libdir}/nginx/modules/
-done
-
-
-
-
-
+%{__install} -Dm755 %{nginx_build_dir}/objs/ngx_http_%{_modname}_module.so \
+    $RPM_BUILD_ROOT%{_libdir}/nginx/modules/ngx_http_%{_modname}_module.so
 
 %clean
 %{__rm} -rf %{buildroot}
-
 
 %files
 %defattr(-,root,root)
