@@ -61,8 +61,8 @@ make modules
 %install
 %{__rm} -rf %{buildroot}
 
-%{__install} -Dm755 %{nginx_build_dir}/objs/ngx_http_%{_modname}_module.so \
-    $RPM_BUILD_ROOT%{_libdir}/nginx/modules/ngx_http_%{_modname}_module.so
+%{__install} -Dm755 %{nginx_build_dir}/objs/nginx-module-%{_modname}.so \
+    $RPM_BUILD_ROOT%{_libdir}/nginx/modules/nginx-module-%{_modname}.so
 
 %clean
 %{__rm} -rf %{buildroot}
