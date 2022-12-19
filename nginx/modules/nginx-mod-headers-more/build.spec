@@ -60,6 +60,9 @@ make modules
 
 %install
 
+
+ls -la  %{_builddir}
+ls -la  /builddir/build/BUILDROOT/
 ls -la  %{_builddir}/headers-more-nginx-module-0.34
 ls -la  %{buildroot}
 
