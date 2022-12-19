@@ -1,7 +1,7 @@
 Summary: headers-more module for nginx
 Name: nginx-module-headers-more
 Version: 0.34
-Release: 3
+Release: 4
 Vendor: OpenResty, Inc.
 URL: https://github.com/openresty/headers-more-nginx-module
 
@@ -12,7 +12,7 @@ URL: https://github.com/openresty/headers-more-nginx-module
 %define nginx_build_dir     %{_builddir}/nginx-%{_nginxver}
 
 Source0: https://nginx.org/download/nginx-%{_nginxver}.tar.gz
-Source1: https://github.com/openresty/headers-more-nginx-module/archive/v%{_modver}.tar.gz
+Source1: https://github.com/openresty/%{_modname}-nginx-module/archive/v%{_modver}.tar.gz
 Source2: copyright
 
 Requires: nginx = 1:%{_nginxver}
@@ -62,7 +62,7 @@ make modules
 %{__rm} -rf %{buildroot}
 
 %{__install} -Dm755 %{nginx_build_dir}/objs/ngx_http_headers_more_filter_module.so  \
-    $RPM_BUILD_ROOT%{_libdir}/nginx/modules/nginx-module-%{_modname}.so
+    $RPM_BUILD_ROOT%{_libdir}/nginx/modules/ngx_http_headers_more_filter_module.so
 
 %clean
 %{__rm} -rf %{buildroot}
