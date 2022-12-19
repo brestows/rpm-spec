@@ -66,7 +66,7 @@ ls -la  /builddir/build/BUILDROOT/
 ls -la  %{_builddir}/headers-more-nginx-module-0.34
 ls -la  %{buildroot}
 
-%{__install} -Dm755 %{_builddir}/objs/nginx-module-%{_modname}.so \
+%{__install} -Dm755 %{nginx_build_dir}/objs/ngx_http_headers_more_filter_module.so  \
     $RPM_BUILD_ROOT%{_libdir}/nginx/modules/nginx-module-%{_modname}.so
 
 %clean
