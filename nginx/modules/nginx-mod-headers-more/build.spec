@@ -59,9 +59,10 @@ cd %{_builddir}/nginx-%{_nginxver}
 make modules
 
 %install
-%{__rm} -rf %{buildroot}
 
 ls -la  %{_builddir}/headers-more-nginx-module-0.34
+ls -la  %{buildroot}
+
 %{__install} -Dm755 %{_builddir}/objs/nginx-module-%{_modname}.so \
     $RPM_BUILD_ROOT%{_libdir}/nginx/modules/nginx-module-%{_modname}.so
 
