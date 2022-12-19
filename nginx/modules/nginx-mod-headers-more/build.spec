@@ -1,12 +1,12 @@
 Summary: headers-more module for nginx
 Name: nginx-module-headers-more
-Version: 0.33
+Version: 0.34
 Release: 3
 Vendor: OpenResty, Inc.
 URL: https://github.com/openresty/headers-more-nginx-module
 
 %define _modname            headers-more
-%define _modver             0.34
+%define _modver             %{version}
 %define _nginxver           1.20.1
 %define nginx_config_dir    %{_sysconfdir}/nginx
 %define nginx_build_dir     %{_builddir}/nginx-%{_nginxver}
@@ -51,11 +51,11 @@ more than "add"!
 
 %prep
 %setup -q -n nginx-%{_nginxver}
-%setup -T -D -b 1 -n ngx_http_%{_modname}_module-%{version}
+%setup -T -D -b 1 -n %{_modname}-nginx-module-%{_modver}
 
 %build
 cd %{_builddir}/nginx-%{_nginxver}
-./configure %(nginx -V 2>&1 | grep 'configure arguments' | sed -r 's@^[^:]+: @@') --add-dynamic-module=../ngx_http_%{_modname}_module-%{version}
+./configure %(nginx -V 2>&1 | grep 'configure arguments' | sed -r 's@^[^:]+: @@') --add-dynamic-module=../%{_modname}-nginx-module-%{_modver}
 make modules
 
 %install
