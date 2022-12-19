@@ -73,6 +73,9 @@ make modules
 
 
 %changelog
+* Wed Jul 1 2022 brestows - 0.34-4.1
+- Updated version of  ngx_http_headers_more_filter_module and Compiled for nginx base version 1.20.1
+
 * Wed Jul 1 2020 Dzmitry Stremkouski <mitroko@gmail.com> - 0.33-1.1
 - Removing debug libs from main package
 
