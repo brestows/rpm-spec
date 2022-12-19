@@ -81,7 +81,7 @@ done
 make -f objs/Makefile %{?_smp_mflags} modules
 
 %install
-%{__rm} -rf $RPM_BUILD_ROOT
+%{__rm} -rf %{buildroot}
 %{__mkdir} -p $RPM_BUILD_ROOT%{_datadir}/doc/%{name}
 %{__install} -m 644 -p %{SOURCE2} \
     $RPM_BUILD_ROOT%{_datadir}/doc/%{name}/COPYRIGHT
@@ -91,6 +91,8 @@ make -f objs/Makefile %{?_smp_mflags} modules
 for so in `find %{_builddir} -maxdepth 1 -type f -name "*.so"`; do
     %{__install} -m755 $so $RPM_BUILD_ROOT%{_libdir}/nginx/modules/
 done
+
+
 
 
 
