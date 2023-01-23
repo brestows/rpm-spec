@@ -1,0 +1,12 @@
+diff -up ./src/ls_mysql.c.orig ./src/ls_mysql.c
+--- ./src/ls_mysql.c.orig	2017-12-23 14:57:13.001507829 +0200
++++ ./src/ls_mysql.c	2017-12-23 14:57:19.881250267 +0200
+@@ -16,7 +16,7 @@
+ #define NO_CLIENT_LONG_LONG
+ #endif
+
+-#include "mysql.h"
++#include <server/mysql.h>
+
+ #include "lua.h"
+ #include "lauxlib.h"
