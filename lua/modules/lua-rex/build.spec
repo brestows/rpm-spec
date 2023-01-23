@@ -9,13 +9,13 @@ Summary:        Regular expression handling library for Lua
 
 Group:          Development/Libraries
 License:        MIT
-URL:            http://lrexlib.luaforge.net/
+URL:            https://lrexlib.luaforge.net/
 Source0:	https://github.com/rrthomas/lrexlib/archive/%{rel}.tar.gz
-Source1:	http://www.luarocks.org/repositories/rocks/lrexlib-pcre-%{version}-1.src.rock
-Source2:	http://www.luarocks.org/repositories/rocks/lrexlib-posix-%{version}-1.src.rock
-Source3:	http://www.luarocks.org/repositories/rocks/lrexlib-tre-%{version}-1.src.rock
-Source4:	http://www.luarocks.org/repositories/rocks/lrexlib-oniguruma-%{version}-1.src.rock
-Source5:	http://www.luarocks.org/repositories/rocks/lrexlib-gnu-%{version}-1.src.rock
+Source1:	https://www.luarocks.org/repositories/rocks/lrexlib-pcre-%{version}-1.src.rock
+Source2:	https://www.luarocks.org/repositories/rocks/lrexlib-posix-%{version}-1.src.rock
+Source3:	https://www.luarocks.org/repositories/rocks/lrexlib-tre-%{version}-1.src.rock
+Source4:	https://www.luarocks.org/repositories/rocks/lrexlib-oniguruma-%{version}-1.src.rock
+Source5:	https://www.luarocks.org/repositories/rocks/lrexlib-gnu-%{version}-1.src.rock
 
 BuildRequires:  oniguruma-devel
 BuildRequires:  pcre-devel
