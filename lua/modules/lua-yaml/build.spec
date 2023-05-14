@@ -40,7 +40,7 @@ TMP=$PWD/tmp luarocks --local --tree=./tree build lyaml-%{version}-1.src.rock CF
 %install
 install -d %{buildroot}%{lualibdir}
 pwd
-ls -la .
+ls -la tree/lib64/lua/5.3/
 cp -P tree/%{_lib}/lua/%{luaver}/lyaml.so* %{buildroot}%{lualibdir}
 
 
