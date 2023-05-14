@@ -28,9 +28,8 @@ between %YAML 1.1 and Lua tables, with a flexible Lua language API to load and s
 %global debug_package %{nil}
 
 %prep
-%setup -q -n lrexlib-%{rel}
 rm .gitignore doc/.gitignore
-cp -a %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} %{SOURCE5} .
+cp -a %{SOURCE1} .
 
 
 %build
