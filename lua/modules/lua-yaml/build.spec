@@ -28,7 +28,6 @@ between %YAML 1.1 and Lua tables, with a flexible Lua language API to load and s
 %global debug_package %{nil}
 
 %prep
-rm .gitignore doc/.gitignore
 cp -a %{SOURCE1} .
 
 
