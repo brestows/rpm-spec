@@ -38,7 +38,7 @@ TMP=$PWD/tmp luarocks --local --tree=./tree build lyaml-%{version}-1.src.rock CF
 
 %install
 install -d %{buildroot}%{lualibdir}
-install -d %{buildroot}%{luamoduledir}/{%name}
+install -d %{buildroot}%{luamoduledir}
 cp -P tree/%{_lib}/lua/%{luaver}/* %{buildroot}%{lualibdir}
 cp -rP %{name}-%{version}/lib/* %{buildroot}%{luamoduledir}
 
@@ -47,7 +47,7 @@ cp -rP %{name}-%{version}/lib/* %{buildroot}%{luamoduledir}
 %{luamoduledir}/*
 
 %changelog
-* Sun May 14 2023 brestows - 6.2.8-1
+* Sun May 14 2023 brestows - 6.2.8-2
 - fix missing files
 * Sun May 14 2023 brestows - 6.2.8-1
 - Update to a latest version
