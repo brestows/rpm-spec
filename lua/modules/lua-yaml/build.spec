@@ -1,9 +1,10 @@
 %define luaver 5.3
 %define lualibdir %{_libdir}/lua/%{luaver}
+%define luamoduledir %{_datadir}/lua/%{luaver}
 
-Name:           lua-yaml
+Name:           lyaml
 Version:        6.2.8
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        YAML handling library for Lua
 
 Group:          Development/Libraries
@@ -28,9 +29,8 @@ between %YAML 1.1 and Lua tables, with a flexible Lua language API to load and s
 %global debug_package %{nil}
 
 %prep
-pwd
-ls -la /builddir/build/SOURCES/
 cp -a %{SOURCE1} .
+tar xf %{SOURCE0} -C .
 
 %build
 mkdir tree
@@ -38,13 +38,16 @@ TMP=$PWD/tmp luarocks --local --tree=./tree build lyaml-%{version}-1.src.rock CF
 
 %install
 install -d %{buildroot}%{lualibdir}
-pwd
-ls -la tree/lib64/lua/5.3/
+install -d %{buildroot}%{luamoduledir}/{%name}
 cp -P tree/%{_lib}/lua/%{luaver}/* %{buildroot}%{lualibdir}
+cp -rP %{name}-%{version}/lib/* %{buildroot}%{luamoduledir}
 
 %files
 %{lualibdir}/*
+%{luamoduledir}/*
 
 %changelog
+* Sun May 14 2023 brestows - 6.2.8-1
+- fix missing files
 * Sun May 14 2023 brestows - 6.2.8-1
 - Update to a latest version
