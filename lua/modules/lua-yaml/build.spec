@@ -29,6 +29,7 @@ between %YAML 1.1 and Lua tables, with a flexible Lua language API to load and s
 
 %prep
 pwd
+ls -la /builddir/build/SOURCES/
 cp -a %{SOURCE1} .
 
 %build
