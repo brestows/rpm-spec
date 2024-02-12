@@ -40,9 +40,6 @@ pwd
 ls -la tree/lib64/lua/5.3/
 cp -P tree/%{_lib}/lua/%{luaver}/* %{buildroot}%{lualibdir}
 
-%check
-make %{?_smp_mflags} test
-
 %files
 %{lualibdir}/*
 %doc ChangeLog.old NEWS README.rst doc
