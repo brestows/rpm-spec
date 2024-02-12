@@ -42,9 +42,6 @@ cp -P tree/%{_lib}/lua/%{luaver}/* %{buildroot}%{lualibdir}
 
 %files
 %{lualibdir}/*
-%doc ChangeLog.old NEWS README.rst doc
-%license LICENSE
-
 
 %changelog
 * Sun May 14 2023 brestows - 6.2.8-1
