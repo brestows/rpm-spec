@@ -30,23 +30,18 @@ between %YAML 1.1 and Lua tables, with a flexible Lua language API to load and s
 %prep
 cp -a %{SOURCE1} .
 
-
 %build
 mkdir tree
 TMP=$PWD/tmp luarocks --local --tree=./tree build lyaml-%{version}-1.src.rock CFLAGS="%{optflags} -fPIC -DLUA_COMPAT_APIINTCASTS" LYAML_LIBDIR=%{_libdir}
-
-
 
 %install
 install -d %{buildroot}%{lualibdir}
 pwd
 ls -la tree/lib64/lua/5.3/
-cp -P tree/%{_lib}/lua/%{luaver}/lyaml.so* %{buildroot}%{lualibdir}
-
+cp -P tree/%{_lib}/lua/%{luaver}/* %{buildroot}%{lualibdir}
 
 %check
 make %{?_smp_mflags} test
-
 
 %files
 %{lualibdir}/*
