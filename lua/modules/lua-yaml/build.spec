@@ -1,4 +1,10 @@
+%if 0%{?rhel} == 8
 %define luaver 5.3
+%endif
+%if 0%{?rhel} == 9
+%define luaver 5.4
+%endif
+
 %define lualibdir %{_libdir}/lua/%{luaver}
 %define luamoduledir %{_datadir}/lua/%{luaver}
 
@@ -33,7 +39,6 @@ cp -a %{SOURCE1} .
 tar xf %{SOURCE0} -C .
 
 %build
-echo %{rhel}
 mkdir tree
 TMP=$PWD/tmp luarocks --local --tree=./tree build lyaml-%{version}-1.src.rock CFLAGS="%{optflags} -fPIC -DLUA_COMPAT_APIINTCASTS" LYAML_LIBDIR=%{_libdir}
 
