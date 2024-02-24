@@ -22,6 +22,10 @@ BuildRequires:  pkgconfig(lua) >= %{luaver}
 BuildRequires:  pkgconfig(sqlite3)
 BuildRequires:  mariadb-devel
 BuildRequires:  postgresql-devel
+BuildRequires:  make
+BuildRequires:  gcc
+
+
 Requires:       %{name}-sqlite = %{version}-%{release}
 Requires:       %{name}-mysql = %{version}-%{release}
 Requires:       %{name}-postgresql = %{version}-%{release}
