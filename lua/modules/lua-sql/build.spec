@@ -10,14 +10,14 @@
 %define oname   luasql
 
 Name:           lua-sql
-Version:        2.3.5
-Release:        5
+Version:        2.6.0
+Release:        1
 Summary:        Database connectivity for the Lua programming language
 Group:          Development/Other
 License:        MIT
 URL:            http://keplerproject.github.io/luasql/
-Source0:        https://github.com/keplerproject/luasql/archive/v%{version}/%{oname}-%{version}.tar.gz
-Patch0:         luasql-2.3.1-mariadb102.patch
+Source0:        https://github.com/lunarmodules/luasql/archive/refs/tags/%{version}.tar.gz
+#Patch0:         luasql-2.3.1-mariadb102.patch
 BuildRequires:  pkgconfig(lua) >= %{luaver}
 BuildRequires:  pkgconfig(sqlite3)
 BuildRequires:  mariadb-devel
@@ -97,7 +97,7 @@ to PostgreSQL databases.
 
 %prep
 %setup -q -n %{oname}-%{version}
-%autopatch -p1
+#%autopatch -p1
 
 %build
 %make_build DRIVER_INCS="`pkg-config --cflags sqlite3`" DRIVER_LIBS="`pkg-config --libs sqlite3`" DEFS="%{optflags}" sqlite3
