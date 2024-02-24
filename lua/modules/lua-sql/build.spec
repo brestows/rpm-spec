@@ -1,4 +1,10 @@
-%define luaver  5.3
+%if 0%{?rhel} == 8
+%define luaver 5.3
+%endif
+%if 0%{?rhel} == 9
+%define luaver 5.4
+%endif
+
 %define lualibdir %{_libdir}/lua/%{luaver}
 %define luapkgdir %{_datadir}/lua/%{luaver}
 %define oname   luasql

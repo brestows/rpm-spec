@@ -1,4 +1,10 @@
+%if 0%{?rhel} == 8
 %define luaver 5.3
+%endif
+%if 0%{?rhel} == 9
+%define luaver 5.4
+%endif
+
 %define lualibdir %{_libdir}/lua/%{luaver}
 %define rel rel-%(echo %{version} |sed 's/\\./-/g')
 
