@@ -33,6 +33,7 @@ cp -a %{SOURCE1} .
 tar xf %{SOURCE0} -C .
 
 %build
+echo %{rhel}
 mkdir tree
 TMP=$PWD/tmp luarocks --local --tree=./tree build lyaml-%{version}-1.src.rock CFLAGS="%{optflags} -fPIC -DLUA_COMPAT_APIINTCASTS" LYAML_LIBDIR=%{_libdir}
 

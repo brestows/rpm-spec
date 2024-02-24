@@ -3,7 +3,7 @@
 %define rel rel-%(echo %{version} |sed 's/\\./-/g')
 
 Name:           lua-rex
-Version:        2.9.1
+Version:        2.9.2
 Release:        1%{?dist}
 Summary:        Regular expression handling library for Lua
 
@@ -61,6 +61,9 @@ make %{?_smp_mflags} test
 
 
 %changelog
+* Tue Feb 24 2024 Siarhei Chystsiakou <brestows@gmail.com> - 2.9.2-1
+- Update to a latest version
+
 * Tue Aug 29 2017 Lubomir Rintel <lkundrak@v3.sk> - 2.8.0-1
 - Update to a latest version
 
