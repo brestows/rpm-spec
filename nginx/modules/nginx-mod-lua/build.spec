@@ -1,17 +1,15 @@
-# nginx source version this module is compiled against.
-# A dynamic module only loads into the exact nginx version it was built with,
-# so this has to track whatever the target distro ships. Override on the
-# command line with: rpmbuild --define 'nginx_version 1.24.0'
+# nginx source version this module is compiled against. A dynamic module only
+# loads into the exact nginx version it was built with, so this tracks whatever
+# the target distro ships.
 #
 # EL9 ships nginx 1.20.1 as a plain package and EL10 ships 1.26.3. EL8 ships
 # nginx only as a module stream, defaulting to 1.14 -- which does not even carry
 # an nginx(abi) provide -- so the copr chroot needs nginx:1.20 enabled. If it is
 # not, %build aborts rather than producing a module nginx refuses to load.
-%if %{undefined nginx_version}
-%global nginx_version 1.20.1
 %if 0%{?rhel} >= 10
 %global nginx_version 1.26.3
-%endif
+%else
+%global nginx_version 1.20.1
 %endif
 
 # lua-nginx-module cannot be built on its own: it depends on the Nginx
@@ -42,11 +40,16 @@ Summary:        Lua module for nginx
 License:        BSD-2-Clause
 URL:            https://github.com/openresty/lua-nginx-module
 
-Source0:        https://nginx.org/download/nginx-%{nginx_version}.tar.gz
-Source1:        https://github.com/openresty/lua-nginx-module/archive/v%{version}/lua-nginx-module-%{version}.tar.gz
-Source2:        https://github.com/vision5/ngx_devel_kit/archive/v%{ndk_version}/ngx_devel_kit-%{ndk_version}.tar.gz
-Source3:        https://github.com/openresty/lua-resty-core/archive/v%{restycore_version}/lua-resty-core-%{restycore_version}.tar.gz
-Source4:        https://github.com/openresty/lua-resty-lrucache/archive/v%{lrucache_version}/lua-resty-lrucache-%{lrucache_version}.tar.gz
+# mock unpacks the SRPM into the target chroot and re-runs `rpmbuild -bs` there,
+# where %%{rhel} is finally known. Both nginx tarballs therefore have to be in
+# the SRPM: listing only the selected one fails the el10 rebuild on a missing
+# source, since the SRPM is built once, with %%{rhel} undefined.
+Source0:        https://nginx.org/download/nginx-1.20.1.tar.gz
+Source1:        https://nginx.org/download/nginx-1.26.3.tar.gz
+Source2:        https://github.com/openresty/lua-nginx-module/archive/v%{version}/lua-nginx-module-%{version}.tar.gz
+Source3:        https://github.com/vision5/ngx_devel_kit/archive/v%{ndk_version}/ngx_devel_kit-%{ndk_version}.tar.gz
+Source4:        https://github.com/openresty/lua-resty-core/archive/v%{restycore_version}/lua-resty-core-%{restycore_version}.tar.gz
+Source5:        https://github.com/openresty/lua-resty-lrucache/archive/v%{lrucache_version}/lua-resty-lrucache-%{lrucache_version}.tar.gz
 
 # nginx is only needed to verify at build time that we compile against the
 # version that is actually installed. --with-compat means we do not have to
@@ -92,12 +95,16 @@ Note that load_module resolves relative paths against nginx's --prefix, not its
 --modules-path, so the absolute path above is required.
 
 %prep
+%if 0%{?rhel} >= 10
+%setup -q -T -b 1 -n nginx-%{nginx_version}
+%else
 %setup -q -n nginx-%{nginx_version}
-%setup -q -T -D -b 2 -n ngx_devel_kit-%{ndk_version}
-%setup -q -T -D -b 3 -n lua-resty-core-%{restycore_version}
-%setup -q -T -D -b 4 -n lua-resty-lrucache-%{lrucache_version}
+%endif
+%setup -q -T -D -b 3 -n ngx_devel_kit-%{ndk_version}
+%setup -q -T -D -b 4 -n lua-resty-core-%{restycore_version}
+%setup -q -T -D -b 5 -n lua-resty-lrucache-%{lrucache_version}
 # Unpacked last so that %%{buildsubdir}, and thus %%license/%%doc, point here.
-%setup -q -T -D -b 1 -n lua-nginx-module-%{version}
+%setup -q -T -D -b 2 -n lua-nginx-module-%{version}
 cp -p ../ngx_devel_kit-%{ndk_version}/LICENSE LICENSE.ndk
 
 %build

@@ -1,17 +1,15 @@
-# nginx source version this module is compiled against.
-# A dynamic module only loads into the exact nginx version it was built with,
-# so this has to track whatever the target distro ships. Override on the
-# command line with: rpmbuild --define 'nginx_version 1.24.0'
+# nginx source version this module is compiled against. A dynamic module only
+# loads into the exact nginx version it was built with, so this tracks whatever
+# the target distro ships.
 #
 # EL9 ships nginx 1.20.1 as a plain package and EL10 ships 1.26.3. EL8 ships
 # nginx only as a module stream, defaulting to 1.14 -- which does not even carry
 # an nginx(abi) provide -- so the copr chroot needs nginx:1.20 enabled. If it is
 # not, %build aborts rather than producing a module nginx refuses to load.
-%if %{undefined nginx_version}
-%global nginx_version 1.20.1
 %if 0%{?rhel} >= 10
 %global nginx_version 1.26.3
-%endif
+%else
+%global nginx_version 1.20.1
 %endif
 
 %global modname geoip2
@@ -24,8 +22,13 @@ Summary:        GeoIP2 module for nginx
 License:        BSD-2-Clause
 URL:            https://github.com/leev/ngx_http_geoip2_module
 
-Source0:        https://nginx.org/download/nginx-%{nginx_version}.tar.gz
-Source1:        https://github.com/leev/ngx_http_geoip2_module/archive/%{version}/%{modname}-%{version}.tar.gz
+# mock unpacks the SRPM into the target chroot and re-runs `rpmbuild -bs` there,
+# where %%{rhel} is finally known. Both nginx tarballs therefore have to be in
+# the SRPM: listing only the selected one fails the el10 rebuild on a missing
+# source, since the SRPM is built once, with %%{rhel} undefined.
+Source0:        https://nginx.org/download/nginx-1.20.1.tar.gz
+Source1:        https://nginx.org/download/nginx-1.26.3.tar.gz
+Source2:        https://github.com/leev/ngx_http_geoip2_module/archive/%{version}/%{modname}-%{version}.tar.gz
 
 # nginx is only needed to verify at build time that we compile against the
 # version that is actually installed. --with-compat means we do not have to
@@ -53,8 +56,12 @@ GeoIP2 module for nginx. Looks up the geographic location of a client address
 in a MaxMind GeoIP2 (.mmdb) database and exposes the result as nginx variables.
 
 %prep
+%if 0%{?rhel} >= 10
+%setup -q -T -b 1 -n nginx-%{nginx_version}
+%else
 %setup -q -n nginx-%{nginx_version}
-%setup -q -T -D -b 1 -n ngx_http_%{modname}_module-%{version}
+%endif
+%setup -q -T -D -b 2 -n ngx_http_%{modname}_module-%{version}
 
 %build
 installed=$(nginx -v 2>&1 | sed -n 's|^nginx version: nginx/||p')
