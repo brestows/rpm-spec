@@ -5,7 +5,7 @@ Spec files built on [copr.fedorainfracloud.org](https://copr.fedorainfracloud.or
 | directory | copr project | chroots |
 |---|---|---|
 | `nginx/modules/` | [brestows/nginx-module](https://copr.fedorainfracloud.org/coprs/brestows/nginx-module/) | epel-8, epel-9, epel-10 |
-| `lua/modules/` | [brestows/lua-modules](https://copr.fedorainfracloud.org/coprs/brestows/lua-modules/) | epel-8, epel-9 |
+| `lua/modules/` | [brestows/lua-modules](https://copr.fedorainfracloud.org/coprs/brestows/lua-modules/) | epel-8, epel-9, epel-10 |
 
 Each package lives in its own directory as `build.spec`, wired to copr as an SCM
 package with auto-rebuild on push.
@@ -136,18 +136,94 @@ lua-resty-core **0.1.32**; the pair for 0.10.31 is still a release candidate.
 
 ---
 
+## Lua modules
+
+Installed system-wide, but their reason for existing is Asterisk's `pbx_lua`.
+Verified end to end on Rocky 8, 9 and 10.
+
+| package | contents |
+|---|---|
+| `lua-rex` | `rex_pcre` (or `rex_pcre2`), `rex_posix`, `rex_tre`, `rex_onig`, `rex_gnu` |
+| `lyaml` | Lua binding for libYAML |
+| `lua-sql` | metapackage pulling `lua-sql-sqlite`, `-mysql`, `-postgresql` |
+
+### Installing
+
+```sh
+dnf install -y epel-release          # luarocks-built deps live here
+dnf copr enable -y brestows/lua-modules
+dnf install -y lua lua-rex lyaml lua-sql
+```
+
+### rex_pcre vs rex_pcre2
+
+EL10 dropped PCRE1, so there the PCRE binding is **`rex_pcre2`**. A script that
+does `require "rex_pcre"` fails on EL10. Write it portably:
+
+```lua
+local ok, rex = pcall(require, "rex_pcre")
+if not ok then rex = require("rex_pcre2") end
+```
+
+The function API is identical. The numeric flag constants from `rex.flags()` are
+**not** — check them if your scripts use them.
+
+---
+
+## Maintaining the Lua specs
+
+### lua(abi), never `lua >= x`
+
+Asterisk's `pbx_lua` links the *system* Lua, and Lua breaks ABI between minor
+releases. `Requires: lua >= 5.4` would let a future Lua 5.5 satisfy the
+dependency while silently breaking the modules. Use `lua(abi) = %{luaver}`,
+which `lua-libs` provides.
+
+| | Lua | `lua(abi)` | install path |
+|---|---|---|---|
+| EL8 | 5.3 | `= 5.3` | `/usr/lib64/lua/5.3/` |
+| EL9 | 5.4 | `= 5.4` | `/usr/lib64/lua/5.4/` |
+| EL10 | 5.4 | `= 5.4` | `/usr/lib64/lua/5.4/` |
+
+`luaver` therefore defaults to 5.4 with EL8 as the exception — not an `%if` per
+release, which is how it ended up undefined (and the paths `/usr/lib64/lua//`)
+on anything that was not 8 or 9.
+
+### luarocks bakes in an rpath
+
+Any binding luarocks links with a `*_LIBDIR` variable gets
+`-Wl,-rpath,/usr/lib64` embedded. **EL10's `check-rpaths` treats a standard rpath
+as an error**, where EL8 and EL9 only warned. Strip it with `chrpath --delete`
+after `%install`; do not paper over it by setting `QA_RPATHS`.
+
+### %check should load what ships
+
+Upstream's `make test` exercises an in-tree build, which is not what luarocks
+produced and not what lands in the RPM. These specs instead `require` each built
+module with the system Lua — the same thing Asterisk does, and the only way to
+catch an ABI or symbol mismatch that a clean compile would not.
+
+### Two spec-language traps
+
+`%define rel`, not `%global rel`: a `%global` expands its body immediately, before
+`Version:` exists, so the substitution runs against an undefined macro. And rpm
+expands macros inside `#` comments, so a comment mentioning `%define` aborts the
+parse with `Macro % has illegal name`. Write `%%` or reword.
+
+---
+
 ## Testing locally
 
 Reproduce copr's pipeline — build the SRPM where `%{rhel}` is undefined, then let
-mock rebuild it in the target chroot:
+mock rebuild it in the target chroot. This applies to every spec here:
 
 ```sh
 # 1. SRPM, the way copr makes it
-spectool -g -R nginx-mod-lua.spec && rpmbuild -bs nginx-mod-lua.spec
+spectool -g -R build.spec && rpmbuild -bs build.spec
 
 # 2. rebuild in each chroot. Fedora's mock-core-configs dropped plain
 #    epel-8-x86_64; use the alma+ or rocky+ variants.
-mock -r alma+epel-8-x86_64  --rebuild *.src.rpm   # needs nginx:1.20:
+mock -r alma+epel-8-x86_64  --rebuild *.src.rpm   # nginx modules need nginx:1.20:
                                                   # config_opts['module_enable'] = ['nginx:1.20']
 mock -r alma+epel-9-x86_64  --rebuild *.src.rpm
 mock -r alma+epel-10-x86_64 --rebuild *.src.rpm   # no module_enable: EL10 dropped modularity
