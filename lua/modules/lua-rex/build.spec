@@ -1,63 +1,109 @@
+# EL8 ships Lua 5.3; EL9 and EL10 ship 5.4. Asterisk's pbx_lua links the system
+# Lua, so lua(abi) below has to match it exactly -- `lua >= x` would silently
+# allow a mismatched ABI.
 %if 0%{?rhel} == 8
-%define luaver 5.3
-%endif
-%if 0%{?rhel} == 9
-%define luaver 5.4
+%global luaver 5.3
+%else
+%global luaver 5.4
 %endif
 
-%define lualibdir %{_libdir}/lua/%{luaver}
+# EL10 dropped PCRE1 entirely. lrexlib carries a separate pcre2 backend, which
+# builds rex_pcre2.so rather than rex_pcre.so -- scripts there must
+# `require "rex_pcre2"`. The function API matches; the flag constants do not.
+%if 0%{?rhel} >= 10
+%global rexpcre pcre2
+%else
+%global rexpcre pcre
+%endif
+
+%global lualibdir %{_libdir}/lua/%{luaver}
+# Deliberately a lazy define: an eager global would expand its body here,
+# before Version: exists, and substitute into an undefined macro.
 %define rel rel-%(echo %{version} |sed 's/\\./-/g')
 
 Name:           lua-rex
 Version:        2.9.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Regular expression handling library for Lua
 
-Group:          Development/Libraries
 License:        MIT
 URL:            https://lrexlib.luaforge.net/
-Source0:	https://github.com/rrthomas/lrexlib/archive/%{rel}.tar.gz
-Source1:	https://luarocks.org/repositories/rocks/lrexlib-pcre-%{version}-1.src.rock
-Source2:	https://luarocks.org/repositories/rocks/lrexlib-posix-%{version}-1.src.rock
-Source3:	https://luarocks.org/repositories/rocks/lrexlib-tre-%{version}-1.src.rock
-Source4:	https://luarocks.org/repositories/rocks/lrexlib-oniguruma-%{version}-1.src.rock
-Source5:	https://luarocks.org/repositories/rocks/lrexlib-gnu-%{version}-1.src.rock
+Source0:        https://github.com/rrthomas/lrexlib/archive/%{rel}.tar.gz
+# Both PCRE rocks are listed unconditionally. copr builds the SRPM once, with
+# %%{rhel} undefined, then mock re-runs `rpmbuild -bs` inside the target chroot
+# where the %%if above finally resolves. A conditional Source: would leave the
+# el10 rebuild looking for a rock that never made it into the SRPM.
+Source1:        https://luarocks.org/repositories/rocks/lrexlib-pcre-%{version}-1.src.rock
+Source2:        https://luarocks.org/repositories/rocks/lrexlib-posix-%{version}-1.src.rock
+Source3:        https://luarocks.org/repositories/rocks/lrexlib-tre-%{version}-1.src.rock
+Source4:        https://luarocks.org/repositories/rocks/lrexlib-oniguruma-%{version}-1.src.rock
+Source5:        https://luarocks.org/repositories/rocks/lrexlib-gnu-%{version}-1.src.rock
+Source6:        https://luarocks.org/repositories/rocks/lrexlib-pcre2-%{version}-1.src.rock
 
+BuildRequires:  gcc
+BuildRequires:  make
+BuildRequires:  lua
+BuildRequires:  chrpath
 BuildRequires:  oniguruma-devel
-BuildRequires:  pcre-devel
 BuildRequires:  lua-devel
-BuildRequires:	tre-devel
+BuildRequires:  tre-devel
 BuildRequires:  pkgconfig
-BuildRequires:	luarocks
+BuildRequires:  luarocks
+%if 0%{?rhel} >= 10
+BuildRequires:  pcre2-devel
+%else
+BuildRequires:  pcre-devel
+%endif
+
 Requires:       lua(abi) = %{luaver}
 Provides:       lrexlib = %{version}
 
 %description
-Lrexlib are bindings of five regular expression library APIs (POSIX, PCRE
+Lrexlib are bindings of five regular expression library APIs (POSIX, PCRE,
 GNU, TRE, and Oniguruma) to Lua.
+
+On EL8 and EL9 the PCRE binding is rex_pcre; on EL10, where PCRE1 no longer
+exists, it is rex_pcre2.
 
 %global debug_package %{nil}
 
 %prep
 %setup -q -n lrexlib-%{rel}
 rm .gitignore doc/.gitignore
-cp -a %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} %{SOURCE5} .
+cp -a %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} %{SOURCE5} %{SOURCE6} .
 
 
 %build
 mkdir tree
-for i in pcre posix oniguruma tre gnu; do
-	TMP=$PWD/tmp luarocks --local --tree=./tree build lrexlib-$i-%{version}-1.src.rock CFLAGS="%{optflags} -fPIC -DLUA_COMPAT_APIINTCASTS" ONIG_LIBDIR=%{_libdir} TRE_LIBDIR=%{_libdir} PCRE_LIBDIR=%{_libdir}
+for i in %{rexpcre} posix oniguruma tre gnu; do
+	TMP=$PWD/tmp luarocks --local --tree=./tree build lrexlib-$i-%{version}-1.src.rock CFLAGS="%{optflags} -fPIC -DLUA_COMPAT_APIINTCASTS" ONIG_LIBDIR=%{_libdir} TRE_LIBDIR=%{_libdir} PCRE_LIBDIR=%{_libdir} PCRE2_LIBDIR=%{_libdir}
 done
 
 
 %install
 install -d %{buildroot}%{lualibdir}
-cp -P tree/%{_lib}/lua/%{luaver}/rex_{gnu,onig,pcre,posix,tre}.so* %{buildroot}%{lualibdir}
+# Globbed, because the PCRE binding is named rex_pcre or rex_pcre2 by release.
+cp -P tree/%{_lib}/lua/%{luaver}/rex_*.so* %{buildroot}%{lualibdir}
+
+# luarocks bakes -Wl,-rpath,%{_libdir} into every binding it links against a
+# named *_LIBDIR. EL10's check-rpaths rejects a standard rpath outright, where
+# EL8 and EL9 only warned. Strip it: the loader finds %{_libdir} by itself.
+for so in %{buildroot}%{lualibdir}/rex_*.so; do
+    chrpath --delete "$so" || :
+done
 
 
+# Upstream's `make test` exercises an in-tree build, which is not what luarocks
+# produced. Load each binding with the system Lua instead: that is what Asterisk
+# will do, and it catches an ABI or symbol mismatch that a compile would not.
 %check
-make %{?_smp_mflags} test
+for m in rex_%{rexpcre} rex_posix rex_onig rex_tre rex_gnu; do
+    lua -e "package.cpath = 'tree/%{_lib}/lua/%{luaver}/?.so;' .. package.cpath
+            local rex = require('$m')
+            assert(rex._VERSION, '$m: no _VERSION')
+            assert(rex.match('abc', 'a.c') == 'abc', '$m: match failed')
+            io.write('  ', '$m', ' -> ', rex._VERSION, '\\n')"
+done
 
 
 %files
@@ -67,7 +113,19 @@ make %{?_smp_mflags} test
 
 
 %changelog
-* Tue Feb 24 2024 Siarhei Chystsiakou <brestows@gmail.com> - 2.9.2-1
+* Fri Jul 10 2026 Siarhei Chystsiakou <brestows@gmail.com> - 2.9.2-2
+- Define luaver for EL10 (5.4); it was only set for EL8 and EL9, which left
+  the install paths as /usr/lib64/lua// everywhere else
+- Build the pcre2 binding on EL10, which no longer ships PCRE1. Both rocks are
+  now unconditional Sources, since copr resolves %%if only when mock re-runs
+  rpmbuild -bs inside the chroot
+- Replace %%check: instead of upstream's in-tree `make test`, load every built
+  binding with the system Lua, which is how Asterisk will load it
+- Strip the rpath luarocks bakes in; EL10's check-rpaths treats a standard
+  rpath as an error rather than a warning
+- Drop the obsolete Group tag
+
+* Sat Feb 24 2024 Siarhei Chystsiakou <brestows@gmail.com> - 2.9.2-1
 - Update to a latest version
 
 * Tue Aug 29 2017 Lubomir Rintel <lkundrak@v3.sk> - 2.8.0-1
