@@ -1,29 +1,32 @@
+# EL8 ships Lua 5.3; EL9 and EL10 ship 5.4. Asterisk's pbx_lua links the system
+# Lua, so lua(abi) below has to match it exactly -- `lua >= x` would silently
+# allow a mismatched ABI.
 %if 0%{?rhel} == 8
-%define luaver 5.3
-%endif
-%if 0%{?rhel} == 9
-%define luaver 5.4
+%global luaver 5.3
+%else
+%global luaver 5.4
 %endif
 
-%define lualibdir %{_libdir}/lua/%{luaver}
-%define luapkgdir %{_datadir}/lua/%{luaver}
-%define oname   luasql
+%global lualibdir %{_libdir}/lua/%{luaver}
+%global luapkgdir %{_datadir}/lua/%{luaver}
+%global oname     luasql
 
 Name:           lua-sql
 Version:        2.6.0
-Release:        1
+Release:        2%{?dist}
 Summary:        Database connectivity for the Lua programming language
-Group:          Development/Other
 License:        MIT
 URL:            http://keplerproject.github.io/luasql/
 Source0:        https://github.com/lunarmodules/luasql/archive/refs/tags/%{version}.tar.gz
-#Patch0:         luasql-2.3.1-mariadb102.patch
+
+BuildRequires:  gcc
+BuildRequires:  make
+BuildRequires:  lua
 BuildRequires:  pkgconfig(lua) >= %{luaver}
 BuildRequires:  pkgconfig(sqlite3)
 BuildRequires:  mariadb-devel
+# Satisfied by libpq-devel, which carries the Provides on EL8, EL9 and EL10.
 BuildRequires:  postgresql-devel
-BuildRequires:  make
-BuildRequires:  gcc
 
 
 Requires:       %{name}-sqlite = %{version}-%{release}
@@ -42,8 +45,7 @@ statements and it allows for retrieving results in a row-by-row cursor fashion.
 
 %package        doc
 Summary:        Documentation for LuaSQL
-Group:          Development/Other
-Requires:       lua >= %{luaver}
+BuildArch:      noarch
 
 %description    doc
 LuaSQL is a simple interface from Lua to a DBMS. This package contains the
@@ -56,8 +58,7 @@ documentation for LuaSQL.
 
 %package        sqlite
 Summary:        SQLite database connectivity for the Lua programming language
-Group:          Development/Other
-Requires:       lua >= %{luaver}
+Requires:       lua(abi) = %{luaver}
 
 %description    sqlite
 LuaSQL is a simple interface from Lua to a DBMS. This package provides access
@@ -71,8 +72,7 @@ to SQLite databases.
 
 %package        mysql
 Summary:        MySQL database connectivity for the Lua programming language
-Group:          Development/Other
-Requires:       lua >= %{luaver}
+Requires:       lua(abi) = %{luaver}
 
 %description    mysql
 LuaSQL is a simple interface from Lua to a DBMS. This package provides access
@@ -86,8 +86,7 @@ to MySQL databases.
 
 %package        postgresql
 Summary:        PostgreSQL database connectivity for the Lua programming language
-Group:          Development/Other
-Requires:       lua >= %{luaver}
+Requires:       lua(abi) = %{luaver}
 
 %description    postgresql
 LuaSQL is a simple interface from Lua to a DBMS. This package provides access
@@ -101,7 +100,6 @@ to PostgreSQL databases.
 
 %prep
 %setup -q -n %{oname}-%{version}
-#%autopatch -p1
 
 %build
 %make_build DRIVER_INCS="`pkg-config --cflags sqlite3`" DRIVER_LIBS="`pkg-config --libs sqlite3`" DEFS="%{optflags}" sqlite3
@@ -112,7 +110,30 @@ to PostgreSQL databases.
 %make_install PREFIX=%{buildroot}%{_prefix} LUA_LIBDIR=%{buildroot}%{lualibdir} LUA_DIR=%{buildroot}%{luapkgdir}
 
 
+# Loading each driver with the system Lua catches an ABI or symbol mismatch that
+# a successful compile does not. No server is contacted; only the client library
+# is dlopened.
+%check
+for d in sqlite3 mysql postgres; do
+    lua -e "package.cpath = '%{buildroot}%{lualibdir}/?.so;' .. package.cpath
+            local drv = require('%{oname}.$d')
+            assert(type(drv) == 'table', '$d: module did not return a table')
+            assert(type(drv['$d']) == 'function', '$d: no environment constructor')
+            io.write('  luasql.$d loads\n')"
+done
+
+
 %changelog
+* Fri Jul 10 2026 Siarhei Chystsiakou <brestows@gmail.com> - 2.6.0-2
+- Require lua(abi) rather than `lua >= x` in the driver subpackages: Lua breaks
+  ABI between minor releases, and Asterisk's pbx_lua loads these against the
+  system Lua
+- Define luaver for EL10 (5.4); it was only set for EL8 and EL9, which left the
+  install paths as /usr/lib64/lua// everywhere else
+- Add %%{?dist} to Release, mark the doc subpackage noarch
+- Add a %%check that loads each driver with the system Lua
+- Drop the commented-out Patch0/autopatch lines and the obsolete Group tags
+
 * Fri Jul 22 2022 Chystsiakou Siarhei 2.3.5-4.el8
 + Revision: 18221120
 - rebuild for rocky 8
